@@ -1285,3 +1285,97 @@ extension EPUBNavigatorViewController: PaginationViewDelegate {
         spreads[index].positionCount(in: readingOrder, positionsByReadingOrder: positionsByReadingOrder)
     }
 }
+
+// MARK: - Public Pagination API
+
+public extension EPUBNavigatorViewController {
+    /// Total number of spreads (rendered pages) in the publication.
+    ///
+    /// This represents the actual number of pages as rendered with the current settings
+    /// (font size, margins, etc.), not position-based approximations.
+    var totalSpreads: Int {
+        paginationView.pageCount
+    }
+
+    /// Index of the currently displayed spread (0-based).
+    ///
+    /// Use this to track which page the user is currently viewing.
+    var currentSpreadIndex: Int {
+        paginationView.currentIndex
+    }
+
+    /// The currently visible spread.
+    ///
+    /// Returns nil if no spread is currently loaded.
+    var currentSpread: EPUBSpread? {
+        guard spreads.indices.contains(currentSpreadIndex) else {
+            return nil
+        }
+        return spreads[currentSpreadIndex]
+    }
+
+    /// All spreads in the current layout.
+    ///
+    /// Warning: This array only contains spreads that have been calculated based on
+    /// the current reading order. It does not require pre-rendering all pages.
+    var allSpreads: [EPUBSpread] {
+        spreads
+    }
+
+    /// Calculate the number of spreads (pages) remaining in the current chapter.
+    ///
+    /// This method filters spreads to find those matching the current chapter (by href),
+    /// then calculates how many remain after the current position, optionally interpolating
+    /// with the progression value for smoother updates.
+    ///
+    /// - Parameter useProgression: If true, uses the locator's progression value to interpolate
+    ///   between spreads for smoother page counting. Defaults to true.
+    /// - Returns: The number of spreads remaining in the current chapter, or nil if calculation fails.
+    func spreadsRemainingInCurrentChapter(useProgression: Bool = true) -> Int? {
+        guard let currentLocation = currentLocation else {
+            return nil
+        }
+
+        // Find spreads for the current resource/chapter
+        let currentHref = currentLocation.href
+        let chapterSpreads = spreads.filter { spread in
+            spread.contains(href: currentHref)
+        }
+
+        guard !chapterSpreads.isEmpty else {
+            return nil
+        }
+
+        // Find the current spread's index within the chapter
+        guard let currentSpreadInChapter = chapterSpreads.firstIndex(where: { spread in
+            spread.contains(href: currentHref) &&
+            spreads.firstIndex(where: { $0.leading.url() == spread.leading.url() }) == currentSpreadIndex
+        }) else {
+            // Fallback: find by matching any spread with the current href
+            if let fallbackIndex = chapterSpreads.firstIndex(where: { spread in
+                spreads.firstIndexWithHREF(spread.leading.url()) ?? -1 <= currentSpreadIndex
+            }) {
+                let baseRemaining = chapterSpreads.count - fallbackIndex - 1
+
+                if useProgression, let progression = currentLocation.locations.progression {
+                    let adjusted = Double(baseRemaining) - progression
+                    return max(0, Int(adjusted))
+                }
+
+                return max(0, baseRemaining)
+            }
+            return nil
+        }
+
+        // Calculate base remaining spreads
+        let baseRemaining = chapterSpreads.count - currentSpreadInChapter - 1
+
+        // Optionally interpolate with progression for smoother counting
+        if useProgression, let progression = currentLocation.locations.progression {
+            let adjusted = Double(baseRemaining) - progression
+            return max(0, Int(adjusted))
+        }
+
+        return max(0, baseRemaining)
+    }
+}
