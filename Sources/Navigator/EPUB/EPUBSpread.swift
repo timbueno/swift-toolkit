@@ -9,9 +9,9 @@ import ReadiumShared
 
 /// A list of EPUB resources to be displayed together on the screen, as one-page
 /// or two-pages spread.
-struct EPUBSpread: Loggable {
+public struct EPUBSpread: Loggable {
     /// Indicates whether two pages are displayed side by side.
-    var spread: Bool
+    public var spread: Bool
 
     /// Indices for the resources displayed in the spread, in reading order.
     ///
