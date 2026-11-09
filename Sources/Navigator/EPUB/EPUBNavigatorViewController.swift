@@ -254,6 +254,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
 
     private let readingOrder: [Link]
     public private(set) var currentLocation: Locator?
+
     private let loadPositionsByReadingOrder: () async -> ReadResult<[[Locator]]>
     private var positionsByReadingOrder: [[Locator]] = []
 
@@ -598,7 +599,16 @@ open class EPUBNavigatorViewController: InputObservableViewController,
     }
 
     private func _reloadSpreads() {
-        let locator = currentLocation
+        let locator: Locator? = {
+            if publication.metadata.epubLayout == .reflowable,
+               let anchor = (paginationView?.currentView as? EPUBReflowableSpreadView)?.reflowLocation,
+               anchor.text.highlight?.isEmpty == false,
+               let current = currentLocation,
+               anchor.href.removingFragment().isEquivalentTo(current.href.removingFragment()) {
+                return anchor
+            }
+            return currentLocation
+        }()
 
         guard
             let paginationView = paginationView,
