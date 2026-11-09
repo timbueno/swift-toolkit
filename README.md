@@ -5,6 +5,20 @@
 > [!TIP]
 > **Take a look at the [guide to quickly get started](docs/Guides/Getting%20Started.md).** A [Test App](TestApp) demonstrates how to integrate the Readium Swift toolkit in your own reading app.
 
+## Leaf maintenance branch
+
+This is Leaf's temporary Readium fork, maintained on `leaf/3.11.1`. It is based on official [Readium 3.11.1](https://github.com/readium/swift-toolkit/releases/tag/3.11.1) (`9a8c094b72245fd27043c9d298005e5c78b32a01`). It does not incorporate the unrelated changes on this fork's `develop` branch.
+
+### Deviations from official 3.11.1
+
+- **EPUB passage preservation during reflow** (`092d118d7`): retain a visible text anchor inside Readium when a paginated, horizontal left-to-right EPUB changes layout. Restore the anchor during resize processing and use it when rebuilding spreads, reducing position drift and delayed corrections. No app-supplied anchor or new public API is required. Includes regenerated JavaScript bundles.
+- **Regression coverage**: a self-contained navigator test exercises repeated font changes, spread reloads, and adopting a new passage after navigation. It passes on iPad and Duo runtimes and fails on unmodified 3.11.1. It was executed through Leaf's test harness; this does not establish a full Readium test-suite pass or visual fold verification.
+- **This README section** documents Leaf's maintenance policy; it is excluded from the upstream contribution.
+
+The corresponding upstream candidate is maintained separately on [`fix/text-anchor-reflow-develop`](https://github.com/timbueno/swift-toolkit/tree/fix/text-anchor-reflow-develop), based on official `develop`. It has not yet been submitted or accepted upstream. Relevant patch corrections and tests should be carried between these branches without merging unrelated development changes into Leaf's branch.
+
+Leaf should pin an exact tested commit from this branch. Once an official Readium release includes the accepted fix, migrate Leaf to that release and retire this maintenance branch. Update this deviation list whenever a patch is added, changed, or removed.
+
 ## Features
 
 ✅ Implemented &nbsp;&nbsp;&nbsp;&nbsp; 🚧 Partially implemented  &nbsp;&nbsp;&nbsp;&nbsp; 📆 Planned &nbsp;&nbsp;&nbsp;&nbsp; 👀 Want to do &nbsp;&nbsp;&nbsp;&nbsp; ❌ Not planned
