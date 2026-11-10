@@ -255,6 +255,22 @@ open class EPUBNavigatorViewController: InputObservableViewController,
     private let readingOrder: [Link]
     public private(set) var currentLocation: Locator?
 
+    /// The text locator currently retained for preserving position during reflow.
+    ///
+    /// Available for supported reflowable EPUB layouts once the current spread
+    /// has reported an anchor. Returns nil when no matching text anchor exists.
+    /// This is a snapshot, not a navigation target to reapply during resizing;
+    /// Readium already restores it. Its position coordinates are not progress metrics.
+    public var currentReflowLocation: Locator? {
+        guard publication.metadata.epubLayout == .reflowable,
+              let anchor = (paginationView?.currentView as? EPUBReflowableSpreadView)?.reflowLocation,
+              anchor.text.highlight?.isEmpty == false,
+              let current = currentLocation,
+              anchor.href.removingFragment().isEquivalentTo(current.href.removingFragment())
+        else { return nil }
+        return anchor
+    }
+
     private let loadPositionsByReadingOrder: () async -> ReadResult<[[Locator]]>
     private var positionsByReadingOrder: [[Locator]] = []
 
@@ -599,16 +615,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
     }
 
     private func _reloadSpreads() {
-        let locator: Locator? = {
-            if publication.metadata.epubLayout == .reflowable,
-               let anchor = (paginationView?.currentView as? EPUBReflowableSpreadView)?.reflowLocation,
-               anchor.text.highlight?.isEmpty == false,
-               let current = currentLocation,
-               anchor.href.removingFragment().isEquivalentTo(current.href.removingFragment()) {
-                return anchor
-            }
-            return currentLocation
-        }()
+        let locator = currentReflowLocation ?? currentLocation
 
         guard
             let paginationView = paginationView,

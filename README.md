@@ -5,6 +5,10 @@
 > [!TIP]
 > **Take a look at the [guide to quickly get started](docs/Guides/Getting%20Started.md).** A [Test App](TestApp) demonstrates how to integrate the Readium Swift toolkit in your own reading app.
 
+## Leaf position-cue experiment
+
+This experimental branch, `leaf/3.11.1-position-cue`, adds the read-only `EPUBNavigatorViewController.currentReflowLocation` property on top of `leaf/3.11.1` at `1118fb62a`. It exposes the same validated text locator used internally to reload spreads, so the app can decorate the preserved passage without independently capturing one. The property returns nil until a matching anchor is available. This API is not part of the upstream reflow PR; no JavaScript or reflow algorithm changes are included. Revert to `1118fb62a` to remove this experiment.
+
 ## Leaf maintenance branch
 
 This is Leaf's temporary Readium fork, maintained on `leaf/3.11.1`. It is based on official [Readium 3.11.1](https://github.com/readium/swift-toolkit/releases/tag/3.11.1) (`9a8c094b72245fd27043c9d298005e5c78b32a01`). It does not incorporate the unrelated changes on this fork's `develop` branch.

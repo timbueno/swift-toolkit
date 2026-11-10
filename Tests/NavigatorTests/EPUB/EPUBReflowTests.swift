@@ -26,6 +26,7 @@ struct EPUBReflowTests {
         )
         let navigator = try EPUBNavigatorViewController(publication: publication, initialLocation: nil,
             config: .init(preferences: .init(fontSize: 1.25, spread: .never)))
+        #expect(navigator.currentReflowLocation == nil)
         let host = UIViewController()
         host.addChild(navigator)
         host.view.addSubview(navigator.view)
@@ -41,6 +42,9 @@ struct EPUBReflowTests {
         #expect(await navigator.go(to: Locator(href: href, mediaType: .xhtml,
             locations: .init(progression: 0.65)), options: .init(animated: false)))
         try await settle(navigator)
+        let anchor = try #require(navigator.currentReflowLocation)
+        #expect(anchor.href == href)
+        #expect(anchor.text.highlight?.isEmpty == false)
         let original = try await firstWord(navigator)
         #expect(Int(original.dropFirst())! > 500)
         // Font changes reflow the existing document. Spread changes reload it.
@@ -49,17 +53,21 @@ struct EPUBReflowTests {
                 navigator.submitPreferences(.init(fontSize: fontSize, spread: .never))
                 try await settle(navigator)
                 #expect(try await visible(original, in: navigator))
+                #expect(navigator.currentReflowLocation?.text == anchor.text)
             }
         }
         for spread in [Spread.always, .never] {
             navigator.submitPreferences(.init(fontSize: 1.25, spread: spread))
             try await settle(navigator)
             #expect(try await visible(original, in: navigator))
+            #expect(navigator.currentReflowLocation?.text == anchor.text)
         }
         #expect(await navigator.goForward(options: .init(animated: false)))
         try await settle(navigator)
         let moved = try await firstWord(navigator)
         #expect(moved != original)
+        let movedAnchor = try #require(navigator.currentReflowLocation)
+        #expect(movedAnchor.text != anchor.text)
         navigator.submitPreferences(.init(fontSize: 1.625, spread: .never))
         try await settle(navigator)
         #expect(try await visible(moved, in: navigator))
