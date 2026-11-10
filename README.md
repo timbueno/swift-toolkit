@@ -12,6 +12,7 @@ This is Leaf's temporary Readium fork, maintained on `leaf/3.11.1`. It is based 
 ### Deviations from official 3.11.1
 
 - **EPUB passage preservation during reflow** (`092d118d7`): retain a visible text anchor inside Readium when a paginated, horizontal left-to-right EPUB changes layout. Restore the anchor during resize processing and use it when rebuilding spreads, reducing position drift and delayed corrections. No app-supplied anchor or new public API is required. Includes regenerated JavaScript bundles.
+- **Viewport resize ordering** (`0c73d1492`): also restore on the window resize event, since the body resize callback may run before the viewport width updates. Snap with the current width rather than a cached width. The mixed Chinese/English repeated-resize regression passes at both tested font sizes.
 - **Regression coverage**: a self-contained navigator test exercises repeated font changes, spread reloads, and adopting a new passage after navigation. It passes on iPad and Duo runtimes and fails on unmodified 3.11.1. It was executed through Leaf's test harness; this does not establish a full Readium test-suite pass or visual fold verification.
 - **This README section** documents Leaf's maintenance policy; it is excluded from the upstream contribution.
 
