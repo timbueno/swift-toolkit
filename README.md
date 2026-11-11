@@ -7,7 +7,7 @@
 
 ## Leaf position-cue experiment
 
-This experimental branch, `leaf/3.11.1-position-cue`, adds the read-only `EPUBNavigatorViewController.currentReflowLocation` property on top of `leaf/3.11.1` at `1118fb62a`. It exposes the same validated text locator used internally to reload spreads, so the app can decorate the preserved passage without independently capturing one. The property returns nil until a matching anchor is available. This API is not part of the upstream reflow PR; no JavaScript or reflow algorithm changes are included. Revert to `1118fb62a` to remove this experiment.
+This experimental branch, `leaf/3.11.1-position-cue`, adds the read-only `EPUBNavigatorViewController.currentReflowLocation` property on top of `leaf/3.11.1` at `1118fb62a`. It exposes the same validated text locator used internally to reload spreads, so the app can decorate the preserved passage without independently capturing one. The property returns nil until a matching anchor is available. This API is not part of the upstream reflow PR; The branch also publishes the restored anchor when restoration leaves the scroll offset unchanged, preventing a stale chapter-start anchor after spread reloads. Regression coverage checks same-page restoration and spread round trips. Revert to `1118fb62a` to remove this experiment.
 
 ## Leaf maintenance branch
 

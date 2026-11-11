@@ -39,6 +39,21 @@ struct EPUBReflowTests {
         defer { window.isHidden = true; window.rootViewController = nil }
 
         try await settle(navigator)
+        // Restore a visible passage without moving the scroll offset.
+        let samePage = Locator(href: href, mediaType: .xhtml,
+            locations: .init(otherLocations: ["cssSelector": "#w2"]),
+            text: .init(highlight: "word2"))
+        #expect(try await visible("w2", in: navigator))
+        let offsetBefore = try await navigator.evaluateJavaScript("scrollX").get() as? Double
+        #expect(await navigator.go(to: samePage, options: .init(animated: false)))
+        try await settle(navigator)
+        #expect(try await navigator.evaluateJavaScript("scrollX").get() as? Double == offsetBefore)
+        #expect(navigator.currentReflowLocation?.text.highlight == "word2")
+        for spread in [Spread.always, .never] {
+            navigator.submitPreferences(.init(fontSize: 1.25, spread: spread))
+            try await settle(navigator)
+            #expect(navigator.currentReflowLocation?.text.highlight == "word2")
+        }
         #expect(await navigator.go(to: Locator(href: href, mediaType: .xhtml,
             locations: .init(progression: 0.65)), options: .init(animated: false)))
         try await settle(navigator)
